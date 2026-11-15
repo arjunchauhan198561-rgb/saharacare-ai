@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SaharaCare AI — Elderly Care & Medication Ecosystem</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --accent: #38bdf8;
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { margin: 0; background: var(--bg); color: var(--text); }
+    .container { max-width: 980px; margin: 0 auto; padding: 20px; }
+    .hidden { display: none !important; }
+    .card { background: var(--card); border-radius: 16px; padding: 20px; margin-bottom: 18px; border: 1px solid #334155; }
+    h1, h2, h3 { margin-top: 0; }
+    button {
+      cursor: pointer; border: none; border-radius: 12px; font-weight: 700;
+      padding: 12px 18px; font-size: 1rem; transition: 0.15s;
+    }
+    button:hover { opacity: 0.92; transform: translateY(-1px); }
+    .btn-primary { background: var(--accent); color: #0f172a; }
+    .btn-green { background: var(--green); color: #052e16; }
+    .btn-amber { background: var(--amber); color: #451a03; }
+    .btn-red { background: var(--red); color: white; }
+    .btn-outline { background: transparent; border: 1px solid #475569; color: var(--text); }
+
+    .login-box { max-width: 440px; margin: 70px auto; text-align: left; }
+    .streak-banner {
+      background: linear-gradient(135deg, #1e3a8a, #0f766e);
+      border-radius: 16px; padding: 16px 20px; margin-bottom: 18px;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+    }
+    .senior-big-btn {
+      width: 100%; padding: 26px; font-size: 1.45rem; border-radius: 18px;
+      display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 14px;
+    }
+    .pulse { animation: pulse 1.4s infinite; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(56,189,248,0.7); } 70% { box-shadow: 0 0 0 18px rgba(56,189,248,0); } 100% { box-shadow: 0 0 0 0 rgba(56,189,248,0); } }
+    .reply-box {
+      background: #0f172a; border-left: 6px solid var(--accent);
+      padding: 18px; border-radius: 12px; font-size: 1.25rem; line-height: 1.5; margin: 14px 0;
+    }
+    .reply-danger { border-left-color: var(--red); background: #2d1215; }
+    .reply-safe { border-left-color: var(--green); background: #0f291e; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 720px) { .grid-2 { grid-template-columns: 1fr; } }
+    input, select {
+      width: 100%; padding: 11px; border-radius: 10px; border: 1px solid #475569;
+      background: #0f172a; color: white; margin-bottom: 10px; font-size: 0.95rem;
+    }
+    .badge { padding: 4px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; }
+    .badge-done { background: #14532d; color: #86efac; }
+    .badge-due { background: #78350f; color: #fde68a; }
+    .item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #334155; }
+    .item-row:last-child { border-bottom: none; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 1. DYNAMIC LOGIN VIEW -->
+  <div id="loginView" class="card login-box">
+    <h1 style="text-align: center;">🩺 SaharaCare AI</h1>
+    <p style="color: var(--muted); text-align: center;">Shared Elderly Healthcare & Medication Ecosystem</p>
+    
+    <label style="display:block; margin-bottom:6px; font-size:0.9rem;">Select Role:</label>
+    <select id="loginRole">
+      <option value="caretaker">Caretaker Portal</option>
+      <option value="senior">Senior Mode (Dadi)</option>
+    </select>
+
+    <label style="display:block; margin-top:10px; margin-bottom:6px; font-size:0.9rem;">Mobile No. (for WhatsApp Alerts):</label>
+    <input id="loginMobile" placeholder="e.g., 919812345678 (with country code)" value="919876543210" />
+
+    <label style="display:block; margin-top:10px; margin-bottom:6px; font-size:0.9rem;">Email Address (for Proactive Alerts):</label>
+    <input id="loginEmail" placeholder="e.g., caretaker@example.com" value="family.caretaker@example.com" />
+
+    <button class="btn-primary" style="width:100%; font-size:1.1rem; margin-top:16px;" onclick="customLogin()">Start SaharaCare AI</button>
+    <p id="loginError" style="color: var(--red); margin-top: 10px; text-align: center;"></p>
+  </div>
+
+  <!-- 2. SENIOR "TAP TO TALK" VIEW -->
+  <div id="seniorView" class="hidden">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+      <h2>🙏 Namaste, Dadi</h2>
+      <button class="btn-outline" onclick="logout()">Switch Role / Lock</button>
+    </div>
+
+    <div id="seniorStreakBanner" class="streak-banner"></div>
+
+    <div id="driftCard" class="card hidden" style="border: 2px solid var(--amber); background: #271f11;">
+      <h3 style="color: var(--amber);">🧠 Smart Routine Suggestion (You Are In Control)</h3>
+      <p id="driftMessage" style="font-size: 1.15rem;"></p>
+      <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        <button id="approveShiftBtn" class="btn-amber">✅ Yes, Shift My Reminder</button>
+        <button class="btn-outline" onclick="document.getElementById('driftCard').classList.add('hidden')">Keep Original Time</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <button id="talkBtn" class="btn-primary senior-big-btn" onclick="startVoiceRecognition()">
+        🎙️ Tap to Talk to Your Companion
+      </button>
+      <div style="display:flex; gap:10px;">
+        <input id="seniorTextInput" placeholder="Or type here: e.g., 'Should I take my BP tablet now?' or 'I took my Metformin'" style="margin:0; font-size:1.1rem;" />
+        <button class="btn-green" onclick="sendSeniorText()">Send</button>
+      </div>
+      <div id="aiReplyBox" class="reply-box">
+        Tap the blue button and speak naturally—for example: <em>"Should I take my blood pressure pill?"</em> or <em>"I just had lunch and took my Metformin"</em>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>📸 Anti-Double-Dose Visual Pill Check</h3>
+      <p style="color: var(--muted); font-size: 1.05rem;">Unsure if you already took a tablet or holding a strip? Snap or upload a photo before swallowing.</p>
+      <input type="file" id="pillPhotoInput" accept="image/*" capture="environment" onchange="verifyPillPhoto()" style="font-size:1.05rem;" />
+      <div id="pillResultBox" class="reply-box hidden"></div>
+    </div>
+
+    <div class="card">
+      <h3>💊 Today's Medicines</h3>
+      <div id="seniorMedList"></div>
+    </div>
+  </div>
+
+  <!-- 3. CARETAKER & FAMILY MANAGEMENT PORTAL -->
+  <div id="caretakerView" class="hidden">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+      <h2>👨‍⚕️ Family & Caretaker Portal (Dadi's Profile)</h2>
+      <button class="btn-outline" onclick="logout()">Switch Role / Lock</button>
+    </div>
+
+    <div class="streak-banner">
+      <div id="caretakerStreakText"></div>
+      <button class="btn-green" onclick="logFamilyHabit()">💪 Log Aarav's Morning Workout</button>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>💊 Medication Schedule</h3>
+        <div id="caretakerMedList"></div>
+        <hr style="border-color:#334155; margin:14px 0;">
+        <h4>+ Add New Medication</h4>
+        <input id="medName" placeholder="Medicine Name (e.g., Vitamin D3)" />
+        <input id="medDosage" placeholder="Dosage (e.g., 1 capsule)" />
+        <input id="medTime" type="time" value="18:00" />
+        <input id="medMeal" placeholder="Meal Rule (e.g., After evening tea)" />
+        <input id="medPurpose" placeholder="Plain-language purpose (e.g., Bone strength)" />
+        <button class="btn-primary" style="width:100%;" onclick="addMedication()">Add to Shared Schedule</button>
+      </div>
+
+      <div>
+        <div class="card">
+          <h3>📅 Upcoming Doctor Appointments</h3>
+          <div id="appointmentList"></div>
+          <hr style="border-color:#334155; margin:14px 0;">
+          <h4>+ Schedule Doctor Visit</h4>
+          <input id="docName" placeholder="Doctor Name (e.g., Dr. Anil Kapoor)" />
+          <input id="docSpec" placeholder="Specialty (e.g., Ophthalmologist)" />
+          <input id="docTime" placeholder="Date & Time (e.g., Monday, 11:00 AM)" />
+          <input id="docLoc" placeholder="Clinic / Hospital Location" />
+          <button class="btn-primary" style="width:100%;" onclick="addAppointment()">Save & Notify Family</button>
+        </div>
+
+        <div class="card" style="border: 1px solid var(--red);">
+          <h3>📧 Proactive Email Reminders & Live Trigger</h3>
+          <p style="color: var(--muted); font-size: 0.9rem;">Automatically dispatches alerts for missed doses, double-dose warnings, and safety checks.</p>
+          <input id="demoEmailInput" placeholder="Caretaker Email for Live Demo" value="family.caretaker@example.com" />
+          <button class="btn-red" style="width:100%;" onclick="simulateMissedDose()">🚨 Simulate Missed Dose (Log Outbox)</button>
+          <div id="emailOutbox" style="margin-top:12px;"></div>
+
+          <!-- Instant WhatsApp Emergency SOS Button -->
+          <a id="whatsappSosBtn" href="https://wa.me/919876543210?text=URGENT:%20SaharaCare%20AI%20detected%20an%20alert%20for%20Dadi.%20Please%20check%20in%20immediately!" 
+             target="_blank" 
+             style="display:block; text-align:center; background:#25d366; color:white; padding:12px; border-radius:12px; font-weight:700; text-decoration:none; margin-top:14px;">
+             💬 Send Instant WhatsApp Alert
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>📊 Adherence & Behavioral Pattern Logs (Last 7 Days)</h3>
+      <div id="doseLogList"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  async function customLogin() {
+    const role = document.getElementById('loginRole').value;
+    const mobile = document.getElementById('loginMobile').value.trim();
+    const email = document.getElementById('loginEmail').value.trim();
+
+    if (!mobile || !email) {
+      document.getElementById('loginError').innerText = 'Please enter both mobile number and email address.';
+      return;
+    }
+
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role, mobile, email })
+    });
+
+    if (!res.ok) {
+      document.getElementById('loginError').innerText = 'Login failed. Please check your inputs.';
+      return;
+    }
+
+    const data = await res.json();
+    applyAlertConfiguration(mobile, email);
+
+    document.getElementById('loginView').classList.add('hidden');
+    if (data.role === 'senior') {
+      document.getElementById('seniorView').classList.remove('hidden');
+    } else {
+      document.getElementById('caretakerView').classList.remove('hidden');
+    }
+    loadDashboard();
+  }
+
+  function applyAlertConfiguration(mobile, email) {
+    const waBtn = document.getElementById('whatsappSosBtn');
+    if (waBtn) {
+      waBtn.href = `https://wa.me/${mobile}?text=URGENT:%20SaharaCare%20AI%20detected%20an%20alert%20for%20Dadi.%20Please%20check%20in%20immediately!`;
+    }
+    const emailInput = document.getElementById('demoEmailInput');
+    if (emailInput) {
+      emailInput.value = email;
+    }
+  }
+
+  function logout() {
+    document.getElementById('seniorView').classList.add('hidden');
+    document.getElementById('caretakerView').classList.add('hidden');
+    document.getElementById('loginView').classList.remove('hidden');
+  }
+
+  function speakText(text) {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.rate = 0.92;
+      window.speechSynthesis.speak(utter);
+    }
+  }
+
+  async function loadDashboard() {
+    const res = await fetch('/api/dashboard');
+    const data = await res.json();
+
+    const s = data.streak;
+    const streakHtml = `
+      <div>
+        <div style="font-size:1.25rem; font-weight:800;">🔥 ${s.streak_days}-Day Shared Family Streak</div>
+        <div style="font-size:0.95rem; opacity:0.95;">
+          ${s.senior_name}: ${s.senior_habit} ${s.senior_done ? '✅' : '⏳'} &nbsp;|&nbsp;
+          ${s.family_name}: ${s.family_habit} ${s.family_done ? '✅' : '⏳'}
+        </div>
+      </div>`;
+    document.getElementById('seniorStreakBanner').innerHTML = streakHtml;
+    document.getElementById('caretakerStreakText').innerHTML = streakHtml;
+
+    if (data.drift_insight) {
+      const d = data.drift_insight;
+      document.getElementById('driftCard').classList.remove('hidden');
+      document.getElementById('driftMessage').innerText = d.message;
+      document.getElementById('approveShiftBtn').onclick = async () => {
+        await fetch(`/api/medications/${d.med_id}/shift`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scheduled_time: d.suggested_time })
+        });
+        speakText(`Done! Your evening reminder has been updated to ${d.suggested_time}.`);
+        document.getElementById('driftCard').classList.add('hidden');
+        loadDashboard();
+      };
+    }
+
+    document.getElementById('seniorMedList').innerHTML = data.medications.map(m => `
+      <div class="item-row" style="font-size:1.15rem;">
+        <div>
+          <strong>${m.name}</strong> (${m.dosage})<br>
+          <span style="color:var(--muted); font-size:0.95rem;">⏰ ${m.scheduled_time} • ${m.meal_rule} — <em>${m.purpose}</em></span>
+        </div>
+        <span class="badge ${m.taken_today ? 'badge-done' : 'badge-due'}">${m.taken_today ? '✅ Taken' : '⏳ Upcoming'}</span>
+      </div>
+    `).join('');
+
+    document.getElementById('caretakerMedList').innerHTML = data.medications.map(m => `
+      <div class="item-row">
+        <div>
+          <strong>${m.name}</strong> (${m.dosage}) — ⏰ ${m.scheduled_time}<br>
+          <span style="color:var(--muted); font-size:0.85rem;">${m.meal_rule} | ${m.purpose}</span>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span class="badge ${m.taken_today ? 'badge-done' : 'badge-due'}">${m.taken_today ? 'Taken' : 'Pending'}</span>
+          <button class="btn-outline" style="padding:6px 10px;" onclick="deleteMed(${m.id})">✕</button>
+        </div>
+      </div>
+    `).join('');
+
+    document.getElementById('appointmentList').innerHTML = data.appointments.map(a => `
+      <div class="item-row">
+        <div>
+          <strong>${a.doctor_name}</strong> (${a.specialty})<br>
+          <span style="color:var(--accent); font-size:0.9rem;">📅 ${a.date_time} • 📍 ${a.location}</span>
+        </div>
+      </div>
+    `).join('');
+
+    document.getElementById('doseLogList').innerHTML = data.dose_logs.map(l => `
+      <div class="item-row">
+        <div><strong>${l.med_name}</strong> (${l.log_date}) — Scheduled ${l.scheduled_time}, Taken at <strong>${l.actual_time}</strong></div>
+        <span class="badge ${l.status.includes('Late') ? 'badge-due' : 'badge-done'}">${l.status}</span>
+      </div>
+    `).join('');
+
+    document.getElementById('emailOutbox').innerHTML = data.emails.map(e => `
+      <div style="background:#0f172a; padding:10px; border-radius:8px; margin-top:8px; font-size:0.85rem;">
+        <strong>${e.subject}</strong> <span style="color:var(--muted);">(${e.created_at})</span><br>
+        <span style="color:var(--green);">${e.delivery_status}</span>
+      </div>
+    `).join('');
+  }
+
+  function startVoiceRecognition() {
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRec) {
+      alert('Voice recognition is not supported in this browser—please type in the box below!');
+      return;
+    }
+    const rec = new SpeechRec();
+    rec.lang = 'en-IN';
+    const btn = document.getElementById('talkBtn');
+    btn.classList.add('pulse');
+    btn.innerText = '🎧 Listening... Speak now';
+    rec.start();
+
+    rec.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      document.getElementById('seniorTextInput').value = transcript;
+      btn.classList.remove('pulse');
+      btn.innerText = '🎙️ Tap to Talk to Your Companion';
+      sendSeniorText();
+    };
+    rec.onerror = () => {
+      btn.classList.remove('pulse');
+      btn.innerText = '🎙️ Tap to Talk to Your Companion';
+    };
+  }
+
+  async function sendSeniorText() {
+    const input = document.getElementById('seniorTextInput');
+    const text = input.value.trim();
+    if (!text) return;
+    const box = document.getElementById('aiReplyBox');
+    box.className = 'reply-box';
+    box.innerText = 'Thinking...';
+
+    const res = await fetch('/api/senior/talk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+    const data = await res.json();
+    box.innerText = data.spoken_reply;
+    if (data.double_dose_warning) box.classList.add('reply-danger');
+    else if (data.action === 'mark_taken') box.classList.add('reply-safe');
+    speakText(data.spoken_reply);
+    input.value = '';
+    loadDashboard();
+  }
+
+  async function verifyPillPhoto() {
+    const fileInput = document.getElementById('pillPhotoInput');
+    if (!fileInput.files.length) return;
+    const box = document.getElementById('pillResultBox');
+    box.classList.remove('hidden');
+    box.className = 'reply-box';
+    box.innerText = '🔍 Checking pill strip against today’s logs with Gemini Vision...';
+
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    const res = await fetch('/api/senior/verify-pill', { method: 'POST', body: formData });
+    const data = await res.json();
+
+    box.innerHTML = `<strong>Detected: ${data.identified_pill}</strong><br>${data.spoken_message}`;
+    if (data.double_dose_risk || !data.safe_to_take) box.classList.add('reply-danger');
+    else box.classList.add('reply-safe');
+    speakText(data.spoken_message);
+    loadDashboard();
+  }
+
+  async function addMedication() {
+    await fetch('/api/medications', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: document.getElementById('medName').value,
+        dosage: document.getElementById('medDosage').value,
+        scheduled_time: document.getElementById('medTime').value,
+        meal_rule: document.getElementById('medMeal').value,
+        purpose: document.getElementById('medPurpose').value
+      })
+    });
+    loadDashboard();
+  }
+
+  async function deleteMed(id) {
+    await fetch(`/api/medications/${id}`, { method: 'DELETE' });
+    loadDashboard();
+  }
+
+  async function addAppointment() {
+    await fetch('/api/appointments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        doctor_name: document.getElementById('docName').value,
+        specialty: document.getElementById('docSpec').value,
+        date_time: document.getElementById('docTime').value,
+        location: document.getElementById('docLoc').value
+      })
+    });
+    loadDashboard();
+  }
+
+  async function logFamilyHabit() {
+    await fetch('/api/streak/family-checkin', { method: 'POST' });
+    loadDashboard();
+  }
+
+  async function simulateMissedDose() {
+    const formData = new FormData();
+    formData.append('recipient', document.getElementById('demoEmailInput').value);
+    await fetch('/api/demo/simulate-missed-dose', { method: 'POST', body: formData });
+    loadDashboard();
+  }
+</script>
+</body>
+</html>
